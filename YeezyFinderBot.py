@@ -15,8 +15,7 @@ all_commands = ['Выбрать кроссовки', 'За какими крос
 
 
 try:
-    sqlite_connection = sqlite3.connect(
-        'sqlite_YEEZY.db', check_same_thread=False)
+    sqlite_connection = sqlite3.connect('sqlite_YEEZY.db', check_same_thread=False)
     sqlite_create_table_query = 'CREATE TABLE IF NOT EXISTS yeezy (user_id INT, shoes TEXT);'
 
     cursor = sqlite_connection.cursor()
@@ -59,11 +58,11 @@ def get_availability(HTML, his_size):
 @bot.message_handler(commands=['start'])
 def start_message(message):
     msg = bot.send_message(message.chat.id, replies.rep[0], reply_markup=keyboards.size_keyboard)
-    cursor.execute('SELECT * from yeezy')
+    cursor.execute('SELECT * from yeezy WHERE user_id=?', (message.chat.id,))
     data = cursor.fetchall()
     his_size = []
     for i in data:
-        if i[0] == message.chat.id and i[1][-2:] == 'US':
+        if i[1][-2:] == 'US':
             his_size.append(i[1])
         if len(his_size) == 1:
             break
@@ -73,14 +72,14 @@ def start_message(message):
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
 
-    cursor.execute('SELECT * from yeezy')
+    cursor.execute('SELECT * from yeezy WHERE user_id=?', (message.chat.id,))
     data = cursor.fetchall()
     his_shoes = []
     his_size = []
     for i in data:
-        if i[0] == message.chat.id and i[1][-2:] != 'US':
+        if i[1][-2:] != 'US':
             his_shoes.append(i[1])
-        elif i[0] == message.chat.id and i[1][-2:] == 'US':
+        elif i[1][-2:] == 'US':
             his_size.append(i[1])
         if len(his_shoes) == 3:
             break
@@ -131,7 +130,7 @@ def get_text_messages(message):
 def start(message, his_size):
     msg = bot.send_message(message.chat.id, replies.rep[10], reply_markup=keyboards.menu_keyboard)
     if his_size:
-        cursor.execute('DELETE from yeezy where user_id = ? and shoes = ?', (message.chat.id, his_size[0]))
+        cursor.execute('DELETE from yeezy where user_id=? and shoes=?', (message.chat.id, his_size[0]))
     cursor.execute('INSERT INTO yeezy VALUES (?, ?)', (message.chat.id, message.text))
     sqlite_connection.commit()
 
@@ -189,7 +188,7 @@ def change_size(message, his_size):
         msg = bot.send_message(message.chat.id, replies.rep[19], reply_markup=keyboards.menu_keyboard)
     elif message.text in all_sizes:
         msg = bot.send_message(message.chat.id, replies.rep[20], reply_markup=keyboards.menu_keyboard)
-        cursor.execute('DELETE from yeezy where user_id = ? and shoes = ?', (message.chat.id, his_size[0]))
+        cursor.execute('DELETE from yeezy where user_id=? and shoes=?', (message.chat.id, his_size[0]))
         cursor.execute('INSERT INTO yeezy VALUES (?, ?)', (message.chat.id, message.text))
         sqlite_connection.commit()
     else:
@@ -202,7 +201,7 @@ def delete(message, his_shoes):
         msg = bot.send_message(message.chat.id, replies.rep[21], reply_markup=keyboards.menu_keyboard)
     elif message.text in his_shoes:
         msg = bot.send_message(message.chat.id, replies.rep[22], reply_markup=keyboards.menu_keyboard)
-        cursor.execute('DELETE from yeezy where user_id = ? and shoes = ?', (message.chat.id, message.text))
+        cursor.execute('DELETE from yeezy where user_id=? and shoes=?', (message.chat.id, message.text))
         sqlite_connection.commit()
     else:
         msg = bot.send_message(message.chat.id, replies.rep[9])
