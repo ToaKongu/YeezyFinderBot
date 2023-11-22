@@ -24,10 +24,10 @@ conn_and_cur = ['', '']
 def connection_to_mysql():
     try:
         with pymysql.connect(
-            host='localhost',
-            user='ToaKongu',
-            password='61evopop',
-            database='YeezyFinderBot'
+            host=config.host,
+            user=config.user,
+            password=config.password,
+            database=config.database
         ) as connection:
             print(connection)
 
